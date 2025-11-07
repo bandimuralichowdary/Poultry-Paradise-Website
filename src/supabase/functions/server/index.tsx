@@ -1,7 +1,7 @@
-import { Hono } from 'npm:hono';
-import { cors } from 'npm:hono/cors';
-import { logger } from 'npm:hono/logger';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
+import { createClient } from '@supabase/supabase-js';
 import * as kv from './kv_store.tsx';
 
 const app = new Hono();
@@ -10,8 +10,8 @@ app.use('*', cors());
 app.use('*', logger(console.log));
 
 const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+process.env.SUPABASE_URL || '',
+process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
 // User signup endpoint
@@ -173,7 +173,7 @@ app.post('/make-server-6c34fe24/init-products', async (c) => {
         price: 180,
         unit: 'kg',
         description: 'Fresh broiler chicken meat, tender and juicy. Perfect for everyday cooking.',
-        image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=500',
+        image: 'https://drive.google.com/file/d/1asnnSm6XHIOT6wTSIs2hq8Kqz2fCheKn/view?usp=drive_link',
         stock: 30,
       },
       {
@@ -183,7 +183,7 @@ app.post('/make-server-6c34fe24/init-products', async (c) => {
         price: 60,
         unit: 'dozen',
         description: 'Fresh white eggs from layer chickens. Perfect for daily consumption and baking.',
-        image: 'https://images.unsplash.com/photo-1569288052389-dac9b01c9c05?w=500',
+        image: 'https://drive.google.com/file/d/1Fm07dL9g351dXueWjFqTx1F5vIfMP6Q3/view?usp=drive_link',
         stock: 100,
       },
       {
@@ -203,7 +203,7 @@ app.post('/make-server-6c34fe24/init-products', async (c) => {
         price: 120,
         unit: 'tray',
         description: 'Fresh quail eggs, packed with nutrients. Perfect for health-conscious consumers.',
-        image: 'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=500',
+        image: 'https://drive.google.com/file/d/1UQFq71hBh-Ff9TOH2zFQNqQ5UAzICLxn/view?usp=drive_link',
         stock: 40,
       },
     ];
@@ -227,4 +227,4 @@ app.post('/make-server-6c34fe24/init-products', async (c) => {
   }
 });
 
-Deno.serve(app.fetch);
+app.get('/', (c) => c.text('Hello from Node + Supabase + Hono!'));
