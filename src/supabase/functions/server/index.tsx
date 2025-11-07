@@ -136,94 +136,66 @@ app.get('/make-server-6c34fe24/health', (c) => {
   return c.json({ status: 'ok' });
 });
 
-// Initialize default products (one-time setup)
-app.post('/make-server-6c34fe24/init-products', async (c) => {
+// Add new product (admin only)
+app.post('/make-server-6c34fe24/products', async (c) => {
   try {
-    // Check if products already exist
-    const existingProducts = await kv.getByPrefix('product:');
-    if (existingProducts && existingProducts.length > 0) {
-      return c.json({ message: 'Products already initialized', count: existingProducts.length });
+    const contentType = c.req.header('content-type') || '';
+    
+    let productData: any = {};
+
+    // 1️⃣ Case: JSON input (image link)
+    if (contentType.includes('application/json')) {
+      productData = await c.req.json();
+    } 
+    
+    // 2️⃣ Case: multipart/form-data (image file upload)
+    else if (contentType.includes('multipart/form-data')) {
+      const formData = await c.req.formData();
+      const name = formData.get('name');
+      const category = formData.get('category');
+      const subcategory = formData.get('subcategory');
+      const price = parseFloat(formData.get('price') as string);
+      const unit = formData.get('unit');
+      const description = formData.get('description');
+      const stock = parseInt(formData.get('stock') as string);
+      const imageFile = formData.get('image') as File | null;
+
+      let imageUrl = '';
+
+      if (imageFile) {
+        // Upload image to Supabase storage
+        const fileName = `${Date.now()}-${imageFile.name}`;
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, imageFile, { upsert: true });
+
+        if (error) throw error;
+
+        // Get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+          
+        imageUrl = publicUrlData.publicUrl;
+      }
+
+      productData = { name, category, subcategory, price, unit, description, stock, image: imageUrl };
     }
 
-    const defaultProducts = [
-      {
-        name: 'Country Chicken',
-        category: 'Country Chicken',
-        subcategory: 'Chicken',
-        price: 350,
-        unit: 'kg',
-        description: 'Fresh country chicken, naturally raised without hormones. Rich in protein and authentic taste.',
-        image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=500',
-        stock: 20,
-      },
-      {
-        name: 'Country Chicken Eggs',
-        category: 'Country Chicken',
-        subcategory: 'Eggs',
-        price: 80,
-        unit: 'dozen',
-        description: 'Farm-fresh country chicken eggs with natural orange yolk. Rich in nutrients and taste.',
-        image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=500',
-        stock: 50,
-      },
-      {
-        name: 'Broiler Chicken',
-        category: 'Broiler & Layer',
-        subcategory: 'Chicken',
-        price: 180,
-        unit: 'kg',
-        description: 'Fresh broiler chicken meat, tender and juicy. Perfect for everyday cooking.',
-        image: 'https://drive.google.com/file/d/1asnnSm6XHIOT6wTSIs2hq8Kqz2fCheKn/view?usp=drive_link',
-        stock: 30,
-      },
-      {
-        name: 'Layer Eggs',
-        category: 'Broiler & Layer',
-        subcategory: 'Eggs',
-        price: 60,
-        unit: 'dozen',
-        description: 'Fresh white eggs from layer chickens. Perfect for daily consumption and baking.',
-        image: 'https://drive.google.com/file/d/1Fm07dL9g351dXueWjFqTx1F5vIfMP6Q3/view?usp=drive_link',
-        stock: 100,
-      },
-      {
-        name: 'Quail Meat',
-        category: 'Quail Bird',
-        subcategory: 'Meat',
-        price: 450,
-        unit: 'kg',
-        description: 'Premium quail meat, delicate flavor and tender texture. A gourmet delicacy.',
-        image: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500',
-        stock: 15,
-      },
-      {
-        name: 'Quail Eggs',
-        category: 'Quail Bird',
-        subcategory: 'Eggs',
-        price: 120,
-        unit: 'tray',
-        description: 'Fresh quail eggs, packed with nutrients. Perfect for health-conscious consumers.',
-        image: 'https://drive.google.com/file/d/1UQFq71hBh-Ff9TOH2zFQNqQ5UAzICLxn/view?usp=drive_link',
-        stock: 40,
-      },
-    ];
+    // 3️⃣ Save product to KV store
+    const productId = `product:${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const product = {
+      id: productId,
+      ...productData,
+      createdAt: new Date().toISOString(),
+    };
 
-    const products = [];
-    for (const productData of defaultProducts) {
-      const productId = `product:${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const product = {
-        id: productId,
-        ...productData,
-        createdAt: new Date().toISOString(),
-      };
-      await kv.set(productId, product);
-      products.push(product);
-    }
+    await kv.set(productId, product);
 
-    return c.json({ message: 'Products initialized successfully', count: products.length, products });
+    return c.json({ product });
   } catch (error: any) {
-    console.error('Error initializing products:', error);
-    return c.json({ error: error.message || 'Failed to initialize products' }, 500);
+    console.error('Error adding product:', error);
+    return c.json({ error: error.message || 'Failed to add product' }, 500);
   }
 });
 

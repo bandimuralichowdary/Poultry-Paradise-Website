@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Product } from '../App';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { Link } from "react-router-dom";
+
 
 interface AdminDashboardProps {
   user: any;
@@ -224,27 +226,38 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Add Product Button */}
         <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-red-900">Product Management</h2>
-          <Button
-            onClick={() => {
-              setShowAddForm(!showAddForm);
-              resetForm();
-            }}
-            className="bg-red-600 hover:bg-red-700"
-          >
-            {showAddForm ? (
-              <>
-                <X className="w-5 h-5 mr-2" />
-                Cancel
-              </>
-            ) : (
-              <>
-                <Plus className="w-5 h-5 mr-2" />
-                Add Product
-              </>
-            )}
-          </Button>
-        </div>
+  <h2 className="text-red-900">Product Management</h2>
+
+  {/* Add Product Button */}
+  <div className="flex items-center gap-3">
+    <Link
+      to="/admin/add-product"
+      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    >
+      Go to Add Product Page
+    </Link>
+
+    <Button
+      onClick={() => {
+        setShowAddForm(!showAddForm);
+        resetForm();
+      }}
+      className="bg-red-600 hover:bg-red-700"
+    >
+      {showAddForm ? (
+        <>
+          <X className="w-5 h-5 mr-2" />
+          Cancel
+        </>
+      ) : (
+        <>
+          <Plus className="w-5 h-5 mr-2" />
+          Add Product
+        </>
+      )}
+    </Button>
+  </div>
+</div>
 
         {/* Add/Edit Product Form */}
         {showAddForm && (
@@ -269,7 +282,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <Label htmlFor="category">Category</Label>
                   <Select
                     value={formData.category}
-                    onValueChange={(value) =>
+                    onValueChange={(value: string) =>
                       setFormData({
                         ...formData,
                         category: value,
@@ -292,7 +305,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <Label htmlFor="subcategory">Subcategory</Label>
                   <Select
                     value={formData.subcategory}
-                    onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
+                    onValueChange={(value: string) => setFormData({ ...formData, subcategory: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -321,7 +334,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <Label htmlFor="unit">Unit</Label>
                   <Select
                     value={formData.unit}
-                    onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                    onValueChange={(value: string) => setFormData({ ...formData, unit: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />

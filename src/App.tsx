@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import AddProduct from "./components/AddProduct";
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import AdminLoginPage from './components/AdminLoginPage';
@@ -189,6 +190,7 @@ function App() {
             )
           }
         />
+        <Route path="/add-product" element={<AddProduct />} />
         {/* Catch-all route - redirect to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
